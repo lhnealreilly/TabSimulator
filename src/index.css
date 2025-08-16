@@ -1,0 +1,194 @@
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+  }
+
+  body {
+    @apply bg-win95-desktop;
+    font-family: 'MS Sans Serif', 'Arial', sans-serif;
+    font-size: 11px;
+    -webkit-font-smoothing: none;
+    -moz-osx-font-smoothing: grayscale;
+    font-smooth: never;
+  }
+}
+
+@layer components {
+  .win95-window {
+    @apply bg-win95-gray border-2;
+    border-style: solid;
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    border-right-color: #0a0a0a;
+    border-bottom-color: #0a0a0a;
+    box-shadow: 1px 1px 0 0 #808080;
+  }
+
+  .win95-titlebar {
+    @apply bg-gradient-to-r from-win95-titlebar-active to-win95-highlight text-white px-0.5 py-0.5 flex items-center justify-between;
+    font-weight: bold;
+    font-size: 11px;
+    user-select: none;
+  }
+
+  .win95-button {
+    @apply bg-win95-gray px-3 py-1 text-black;
+    border: 2px solid;
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    border-right-color: #0a0a0a;
+    border-bottom-color: #0a0a0a;
+    box-shadow: 1px 1px 0 0 #808080;
+    font-size: 11px;
+    user-select: none;
+  }
+
+  .win95-button:active {
+    border-top-color: #0a0a0a;
+    border-left-color: #0a0a0a;
+    border-right-color: #ffffff;
+    border-bottom-color: #ffffff;
+    padding-left: 14px;
+    padding-top: 6px;
+    padding-right: 10px;
+    padding-bottom: 2px;
+  }
+
+  .win95-button:disabled {
+    @apply text-win95-darkgray;
+    text-shadow: 1px 1px 0 #ffffff;
+  }
+
+  .win95-tab {
+    @apply bg-win95-gray px-3 py-1 text-black relative;
+    border: 2px solid;
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    border-right-color: #0a0a0a;
+    border-bottom-color: transparent;
+    margin-right: -1px;
+    font-size: 11px;
+    user-select: none;
+    z-index: 1;
+  }
+
+  .win95-tab-active {
+    @apply bg-win95-white;
+    z-index: 10;
+    padding-bottom: 3px;
+    margin-bottom: -2px;
+  }
+
+  .win95-inset {
+    border: 2px solid;
+    border-top-color: #808080;
+    border-left-color: #808080;
+    border-right-color: #ffffff;
+    border-bottom-color: #ffffff;
+    @apply bg-white;
+  }
+
+  .win95-outset {
+    border: 2px solid;
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    border-right-color: #808080;
+    border-bottom-color: #808080;
+  }
+
+  .win95-progress-bar {
+    @apply bg-win95-navy h-4 relative overflow-hidden;
+    background-image: repeating-linear-gradient(
+      90deg,
+      #000080,
+      #000080 8px,
+      #1034a6 8px,
+      #1034a6 16px
+    );
+  }
+
+  .win95-close-button {
+    @apply bg-win95-gray w-4 h-3 flex items-center justify-center text-black font-bold;
+    border: 1px solid;
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    border-right-color: #0a0a0a;
+    border-bottom-color: #0a0a0a;
+    font-size: 10px;
+    line-height: 1;
+  }
+
+  .win95-close-button:active {
+    border-top-color: #0a0a0a;
+    border-left-color: #0a0a0a;
+    border-right-color: #ffffff;
+    border-bottom-color: #ffffff;
+  }
+
+  .win95-minimize-button {
+    @apply bg-win95-gray w-4 h-3 flex items-center justify-center text-black;
+    border: 1px solid;
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    border-right-color: #0a0a0a;
+    border-bottom-color: #0a0a0a;
+    font-size: 10px;
+    line-height: 1;
+  }
+
+  .win95-text-shadow {
+    text-shadow: 1px 1px 0 #ffffff;
+  }
+
+  .pixel-font {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    letter-spacing: 1px;
+  }
+}
+
+@layer utilities {
+  .scanlines::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 0, 0, 0.1) 50%
+    );
+    background-size: 100% 2px;
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  .crt-effect {
+    animation: flicker 0.15s infinite;
+  }
+
+  @keyframes flicker {
+    0% {
+      opacity: 0.97;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0.98;
+    }
+  }
+
+  .dotted-background {
+    background-image: radial-gradient(circle, #808080 1px, transparent 1px);
+    background-size: 2px 2px;
+  }
+}
