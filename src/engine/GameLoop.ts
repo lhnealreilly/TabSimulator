@@ -36,6 +36,26 @@ export class GameLoop {
     this.gameState = { ...newState };
   }
 
+  // Execute a single effect (for step-by-step execution)
+  executeSingleEffect(tabId: string, effectId: string): EffectResult | null {
+    const tab = this.gameState.tabs.find(t => t.id === tabId);
+    if (!tab) return null;
+
+    const effect = effectRegistry.getEffect(effectId);
+    if (!effect) return null;
+
+    // Use the same execution logic as the main run phase
+    const context: EffectContext = {
+      sourceTabId: tabId,
+      runPhaseTime: 0,
+      previousEffects: [],
+      availableTabs: this.gameState.tabs,
+      deltaTime: 0
+    };
+
+    return this.executeEffect(effect, tab, [], 0);
+  }
+
   getCurrentPhase(): GamePhase {
     return this.gameState.phase;
   }

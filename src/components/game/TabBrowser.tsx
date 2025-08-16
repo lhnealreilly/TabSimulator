@@ -7,9 +7,10 @@ interface TabBrowserProps {
   gameState: GameState;
   isAnimating: boolean;
   actions: GameEngineActions;
+  currentExecutingEffect?: string | null;
 }
 
-export function TabBrowser({ gameState, isAnimating, actions }: TabBrowserProps) {
+export function TabBrowser({ gameState, isAnimating, actions, currentExecutingEffect }: TabBrowserProps) {
   const activeTab = gameState.tabs.find(tab => tab.isActive);
 
   return (
@@ -38,6 +39,7 @@ export function TabBrowser({ gameState, isAnimating, actions }: TabBrowserProps)
               onOpenTab={actions.openTab}
               gameState={gameState}
               disabled={isAnimating || gameState.phase !== 'discovery'}
+              currentExecutingEffect={currentExecutingEffect}
             />
           ) : (
             <div className="text-center mt-8">

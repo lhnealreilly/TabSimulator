@@ -59,9 +59,6 @@ export function RunButton({ onRun, onStepRun, disabled = false, isAnimating = fa
           <div className="pixel-font text-resource-productivity space-y-1">
             <div>TABS READY: {tabCount.toString().padStart(2, '0')}</div>
             <div>STATUS: {isAnimating ? 'RUNNING' : disabled ? 'WAITING' : 'READY'}</div>
-            {isAnimating && (
-              <div className="animate-pulse">PROCESSING...</div>
-            )}
           </div>
         </div>
         

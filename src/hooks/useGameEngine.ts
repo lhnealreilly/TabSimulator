@@ -30,6 +30,7 @@ export interface GameEngineState {
   emergentBehaviors: EmergentDetectionResult[];
   currentFocusedTab: string | null;
   stepExecutionState: StepExecutionState | null;
+  currentExecutingEffect: string | null; // Effect ID currently being executed
 }
 
 const DEFAULT_CONFIG: GameConfig = {
@@ -126,6 +127,7 @@ export function useGameEngine(config: GameConfig = DEFAULT_CONFIG): GameEngineSt
   const [emergentBehaviors, setEmergentBehaviors] = useState<EmergentDetectionResult[]>([]);
   const [currentFocusedTab, setCurrentFocusedTab] = useState<string | null>(null);
   const [stepExecutionState, setStepExecutionState] = useState<StepExecutionState | null>(null);
+  const [currentExecutingEffect, setCurrentExecutingEffect] = useState<string | null>(null);
   
   const gameLoopRef = useRef<GameLoop | null>(null);
 
@@ -198,16 +200,87 @@ export function useGameEngine(config: GameConfig = DEFAULT_CONFIG): GameEngineSt
     }
 
     setIsAnimating(true);
+
+    // Build the effect queue for execution
+    const pendingEffects: PendingEffect[] = [];
+    gameState.tabs.forEach(tab => {
+      tab.effects.forEach(effectId => {
+        const effect = effectRegistry.getEffect(effectId);
+        if (effect) {
+          pendingEffects.push({
+            tabId: tab.id,
+            effectId,
+            effect
+          });
+        }
+      });
+    });
+
+    const executedEffects: any[] = [];
+
+    // Execute effects one by one with real-time updates
+    for (let i = 0; i < pendingEffects.length; i++) {
+      const currentEffect = pendingEffects[i];
+      
+      // Switch to tab and highlight effect
+      if (gameLoopRef.current) {
+        gameLoopRef.current.switchToTab(currentEffect.tabId);
+        setGameState(gameLoopRef.current.getState());
+      }
+      setCurrentFocusedTab(currentEffect.tabId);
+      setCurrentExecutingEffect(currentEffect.effectId);
+
+      // Visual buildup delay
+      await new Promise(resolve => setTimeout(resolve, 400));
+
+      // Execute the effect in real-time
+      try {
+        const effectResult = gameLoopRef.current.executeSingleEffect(currentEffect.tabId, currentEffect.effectId);
+        if (effectResult) {
+          executedEffects.push(effectResult);
+          // Update state immediately to show point changes
+          setGameState(gameLoopRef.current.getState());
+        }
+      } catch (error) {
+        console.error('Error executing effect during auto run:', error);
+      }
+
+      // Show impact delay
+      await new Promise(resolve => setTimeout(resolve, 400));
+      
+      setCurrentExecutingEffect(null);
+    }
+
+    // Transition to scoring phase and calculate final results
+    const currentState = gameLoopRef.current.getState();
+    const scoringState = {
+      ...currentState,
+      phase: 'scoring' as GamePhase
+    };
+    gameLoopRef.current.setState(scoringState);
+
+    // Calculate run result from executed effects
+    const totalPoints = executedEffects.reduce((sum, effect) => sum + (effect.pointsGenerated || 0), 0);
     
-    // Execute the deterministic run immediately
-    const result = gameLoopRef.current.executeRunPhase();
+    const result: RunResult = {
+      basePoints: totalPoints,
+      synergyBonus: 0,
+      efficiencyBonus: 0,
+      goalBonus: 0,
+      totalPoints,
+      completedInteractions: [],
+      burnedOutTabs: []
+    };
     
-    // Simulate animation time (UI will show animations during this time)
-    await new Promise(resolve => setTimeout(resolve, config.runPhaseDuration));
-    
+    setCurrentFocusedTab(null);
     setIsAnimating(false);
+
+    // Transition back to discovery
+    gameLoopRef.current.startDiscoveryPhase();
+    setGameState(gameLoopRef.current.getState());
+    
     return result;
-  }, [config.runPhaseDuration]);
+  }, [gameState.tabs]);
 
   const openTab = useCallback((linkId: string): Tab | null => {
     if (!gameLoopRef.current) {
@@ -254,20 +327,24 @@ export function useGameEngine(config: GameConfig = DEFAULT_CONFIG): GameEngineSt
       return;
     }
 
-    // Build list of all effects to execute
+    // Build list of all effects to execute, grouped by tab
     const pendingEffects: PendingEffect[] = [];
     
+    // Process all effects for each tab before moving to next tab
     gameState.tabs.forEach(tab => {
+      const tabEffects: PendingEffect[] = [];
       tab.effects.forEach(effectId => {
         const effect = effectRegistry.getEffect(effectId);
         if (effect) {
-          pendingEffects.push({
+          tabEffects.push({
             tabId: tab.id,
             effectId,
             effect
           });
         }
       });
+      // Add all effects for this tab to the main queue
+      pendingEffects.push(...tabEffects);
     });
 
     if (pendingEffects.length === 0) {
@@ -308,37 +385,25 @@ export function useGameEngine(config: GameConfig = DEFAULT_CONFIG): GameEngineSt
       return;
     }
 
-    // Execute the current effect using effect's execute function
+    // Highlight the effect being executed
+    setCurrentExecutingEffect(currentEffect.effectId);
+
+    // Execute the current effect using GameLoop's proper method
     try {
-      // Create a context for this effect
-      const context = {
-        sourceTabId: currentEffect.tabId,
-        runPhaseTime: stepExecutionState.currentEffectIndex,
-        previousEffects: stepExecutionState.executedEffects,
-        availableTabs: gameState.tabs,
-        deltaTime: 0
-      };
-
-      // Execute effect
-      const originalState = gameState;
-      const newGameState = currentEffect.effect.execute(originalState, context);
+      const effectResult = gameLoopRef.current.executeSingleEffect(currentEffect.tabId, currentEffect.effectId);
       
-      // Update game state
-      setGameState(newGameState);
+      if (!effectResult) {
+        throw new Error(`Failed to execute effect ${currentEffect.effectId}`);
+      }
 
-      // Record executed effect
-      const effectResult = {
-        tabId: currentEffect.tabId,
-        effectId: currentEffect.effectId,
-        effect: currentEffect.effect.description,
-        pointsGenerated: newGameState.score - originalState.score,
-        timestamp: Date.now()
-      };
+      // Update game state from GameLoop
+      setGameState(gameLoopRef.current.getState());
 
       // Move to next effect
       const nextIndex = stepExecutionState.currentEffectIndex + 1;
       if (nextIndex >= stepExecutionState.pendingEffects.length) {
         // All effects executed
+        setCurrentExecutingEffect(null);
         finishStepExecution();
       } else {
         const nextEffect = stepExecutionState.pendingEffects[nextIndex];
@@ -350,6 +415,7 @@ export function useGameEngine(config: GameConfig = DEFAULT_CONFIG): GameEngineSt
           currentEffectId: nextEffect.effectId
         });
         setCurrentFocusedTab(nextEffect.tabId);
+        setCurrentExecutingEffect(null); // Clear previous effect highlight
         
         // Switch to the next tab
         if (gameLoopRef.current) {
@@ -383,15 +449,26 @@ export function useGameEngine(config: GameConfig = DEFAULT_CONFIG): GameEngineSt
   }, [stepExecutionState, gameState]);
 
   const finishStepExecution = useCallback(() => {
-    if (!gameLoopRef.current) return;
+    if (!gameLoopRef.current || !stepExecutionState) return;
 
-    // Calculate final results
+    // Complete the run phase properly using GameLoop
+    // First transition to scoring phase
+    const currentState = gameLoopRef.current.getState();
+    const scoringState = {
+      ...currentState,
+      phase: 'scoring' as GamePhase
+    };
+    gameLoopRef.current.setState(scoringState);
+
+    // Calculate a proper run result based on executed effects
+    const totalPoints = stepExecutionState.executedEffects.reduce((sum, effect) => sum + (effect.pointsGenerated || 0), 0);
+    
     const runResult: RunResult = {
-      basePoints: 0, // Will be calculated from executed effects
+      basePoints: totalPoints,
       synergyBonus: 0,
       efficiencyBonus: 0,
-      goalBonus: 0,
-      totalPoints: stepExecutionState?.executedEffects.reduce((sum, effect) => sum + (effect.pointsGenerated || 0), 0) || 0,
+      goalBonus: 0, // Goal bonus should be calculated by the GameLoop
+      totalPoints,
       completedInteractions: [],
       burnedOutTabs: []
     };
@@ -400,11 +477,9 @@ export function useGameEngine(config: GameConfig = DEFAULT_CONFIG): GameEngineSt
     setStepExecutionState(null);
     setCurrentFocusedTab(null);
 
-    // Transition to discovery
-    if (gameLoopRef.current) {
-      gameLoopRef.current.startDiscoveryPhase();
-      setGameState(gameLoopRef.current.getState());
-    }
+    // Transition to discovery using the GameLoop
+    gameLoopRef.current.startDiscoveryPhase();
+    setGameState(gameLoopRef.current.getState());
   }, [stepExecutionState]);
 
   const cancelStepExecution = useCallback(() => {
@@ -486,6 +561,7 @@ export function useGameEngine(config: GameConfig = DEFAULT_CONFIG): GameEngineSt
     emergentBehaviors,
     currentFocusedTab,
     stepExecutionState,
+    currentExecutingEffect,
     actions
   };
 }

@@ -8,9 +8,10 @@ interface TabContentProps {
   onOpenTab: (linkId: string) => Tab | null;
   gameState: GameState;
   disabled?: boolean;
+  currentExecutingEffect?: string | null;
 }
 
-export function TabContent({ tab, onOpenTab, gameState, disabled = false }: TabContentProps) {
+export function TabContent({ tab, onOpenTab, gameState, disabled = false, currentExecutingEffect }: TabContentProps) {
   const availableRam = gameState.resources.ram.current;
 
   // Predict what an effect will do based on current game state
@@ -194,7 +195,7 @@ export function TabContent({ tab, onOpenTab, gameState, disabled = false }: TabC
       {tab.effects.length > 0 && (
         <div className="border-t border-win95-darkgray pt-2">
           <h4 className="text-xs font-bold mb-2">Active Effects - Run Preview:</h4>
-          <div className="space-y-2 max-h-40 overflow-y-auto">
+          <div className="space-y-2 max-h-40 overflow-y-auto effects-container">
             {tab.effects.map(effectId => {
               const effect = effectRegistry.getEffect(effectId);
               if (!effect) {
@@ -228,10 +229,18 @@ export function TabContent({ tab, onOpenTab, gameState, disabled = false }: TabC
                 }
               };
 
+              const isExecuting = currentExecutingEffect === effectId;
+
               return (
                 <div 
                   key={effectId}
-                  className="text-xs bg-win95-silver px-2 py-1 border border-win95-darkgray"
+                  className={`
+                    text-xs px-2 py-1 border border-win95-darkgray transition-all duration-200
+                    ${isExecuting 
+                      ? 'effect-executing' 
+                      : 'bg-win95-silver'
+                    }
+                  `}
                 >
                   {/* Effect Header */}
                   <div className="flex items-center justify-between mb-1">

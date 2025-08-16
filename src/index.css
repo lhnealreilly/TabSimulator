@@ -247,4 +247,79 @@
     background-repeat: no-repeat;
     background-position: center;
   }
+
+  /* Effect execution animations */
+  .effect-executing {
+    position: relative;
+    z-index: 10;
+  }
+
+  .effect-executing::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700);
+    border: 2px solid #ffd700;
+    border-radius: inherit;
+    z-index: -1;
+    animation: effectExecuteOverlay 1.2s ease-in-out;
+    pointer-events: none;
+  }
+
+  @keyframes effectExecuteOverlay {
+    0% { 
+      transform: scale(1); 
+      box-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+    }
+    20% { 
+      transform: scale(1.05) rotate(1deg); 
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+    }
+    40% { 
+      transform: scale(1.1) rotate(-1deg); 
+      box-shadow: 0 0 20px rgba(255, 215, 0, 1);
+    }
+    60% { 
+      transform: scale(1.08) rotate(0.5deg); 
+      box-shadow: 0 0 25px rgba(255, 215, 0, 1);
+    }
+    80% { 
+      transform: scale(1.05) rotate(-0.5deg); 
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+    }
+    100% { 
+      transform: scale(1.02); 
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+    }
+  }
+
+  /* Container for effect cards to allow overflow */
+  .effects-container {
+    position: relative;
+    overflow: visible;
+  }
+
+
+  /* Score impact flash */
+  .score-impact {
+    animation: scoreFlash 0.6s ease-out;
+  }
+
+  @keyframes scoreFlash {
+    0% { 
+      background-color: #00ff00;
+      transform: scale(1);
+    }
+    50% { 
+      background-color: #7fff00;
+      transform: scale(1.1);
+    }
+    100% { 
+      background-color: transparent;
+      transform: scale(1);
+    }
+  }
 }

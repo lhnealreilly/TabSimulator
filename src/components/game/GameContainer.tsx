@@ -15,6 +15,7 @@ export function GameContainer() {
     emergentBehaviors, 
     currentFocusedTab,
     stepExecutionState,
+    currentExecutingEffect,
     actions 
   } = useGameEngine();
 
@@ -47,6 +48,7 @@ export function GameContainer() {
                   gameState={gameState}
                   isAnimating={isAnimating}
                   actions={actions}
+                  currentExecutingEffect={currentExecutingEffect}
                 />
               </div>
               
@@ -69,20 +71,6 @@ export function GameContainer() {
                   tabCount={gameState.tabs.length}
                   gamePhase={gameState.phase}
                 />
-                
-                {/* Current Focus Info */}
-                {currentFocusedTab && (
-                  <div className="win95-window">
-                    <div className="win95-titlebar">
-                      <span className="text-xs">Effect Processing</span>
-                    </div>
-                    <div className="p-2 text-xs">
-                      <div className="text-yellow-600 animate-pulse">
-                        🎯 Processing: {currentFocusedTab}
-                      </div>
-                    </div>
-                  </div>
-                )}
                 
                 {/* Status Info */}
                 <div className="win95-window flex-1 min-h-0">
