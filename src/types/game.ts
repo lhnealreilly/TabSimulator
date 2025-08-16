@@ -1,7 +1,7 @@
 import { Tab } from './tabs';
 import { Upgrade } from './upgrades';
 
-export type GamePhase = 'discovery' | 'running' | 'scoring' | 'idle';
+export type GamePhase = 'discovery' | 'running' | 'scoring' | 'idle' | 'step-execution';
 
 export interface GameState {
   tabs: Tab[];
@@ -79,4 +79,19 @@ export interface GameStats {
   highestScore: number;
   goalsCompleted: number;
   favoriteTabType: string;
+}
+
+export interface StepExecutionState {
+  pendingEffects: PendingEffect[];
+  currentEffectIndex: number;
+  executedEffects: any[]; // EffectResult[]
+  isWaitingForUser: boolean;
+  currentTabId: string | null;
+  currentEffectId: string | null;
+}
+
+export interface PendingEffect {
+  tabId: string;
+  effectId: string;
+  effect: any; // TabEffect
 }

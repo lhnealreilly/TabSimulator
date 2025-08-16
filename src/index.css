@@ -191,4 +191,60 @@
     background-image: radial-gradient(circle, #808080 1px, transparent 1px);
     background-size: 2px 2px;
   }
+
+  /* Windows 95 style scrollbar for tab bar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #808080 #c0c0c0;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    height: 16px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: #c0c0c0;
+    border: 2px inset #c0c0c0;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #c0c0c0;
+    border: 2px outset #c0c0c0;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: #a0a0a0;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:active {
+    background: #808080;
+    border: 2px inset #c0c0c0;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-button {
+    background: #c0c0c0;
+    border: 2px outset #c0c0c0;
+    width: 16px;
+    height: 16px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-button:hover {
+    background: #a0a0a0;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-button:active {
+    border: 2px inset #c0c0c0;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-button:horizontal:decrement {
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M10 4L6 8l4 4' stroke='%23000' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-button:horizontal:increment {
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M6 4l4 4-4 4' stroke='%23000' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+  }
 }

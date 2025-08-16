@@ -13,22 +13,8 @@ export function LinkButton({ link, onOpenTab, canAfford, disabled = false, avail
   const isDisabled = disabled || !canAfford;
   
   const handleClick = () => {
-    console.log('CLICK EVENT FIRED for link:', link.id);
-    console.log('LinkButton clicked:', { 
-      linkId: link.id, 
-      isDisabled, 
-      canAfford, 
-      disabled,
-      availableRam,
-      ramCost: link.ramCost 
-    });
-    
     if (!isDisabled) {
-      console.log('Calling onOpenTab with:', link.id);
-      const result = onOpenTab(link.id);
-      console.log('onOpenTab result:', result);
-    } else {
-      console.log('Button is disabled, not calling onOpenTab');
+      onOpenTab(link.id);
     }
   };
 

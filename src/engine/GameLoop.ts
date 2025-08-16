@@ -11,6 +11,7 @@ export interface GameLoopEvents {
   onRunComplete: (result: RunResult) => void;
   onTabSpawned: (tab: Tab) => void;
   onTabModified: (tabId: string, changes: Partial<Tab>) => void;
+  onTabFocus: (tabId: string) => void; // Simple tab focus event for camera
 }
 
 export class GameLoop {
@@ -29,6 +30,10 @@ export class GameLoop {
   // Public API
   getState(): GameState {
     return { ...this.gameState };
+  }
+
+  setState(newState: GameState): void {
+    this.gameState = { ...newState };
   }
 
   getCurrentPhase(): GamePhase {
@@ -66,7 +71,7 @@ export class GameLoop {
 
     this.events.onPhaseChange?.('running');
 
-    // Execute all effects in deterministic order
+    // Execute all effects in deterministic order with visual switching
     const executedEffects = this.executeEffectChain();
 
     // Calculate final results
@@ -174,6 +179,7 @@ export class GameLoop {
   }
 
   switchToTab(tabId: string): boolean {
+    // Allow tab switching during step-execution and discovery, but not during running
     if (this.gameState.phase === 'running') {
       return false;
     }
@@ -209,6 +215,9 @@ export class GameLoop {
       // Execute effects for each tab in order (deterministic based on tab array position)
       for (let tabIndex = 0; tabIndex < this.gameState.tabs.length; tabIndex++) {
         const tab = this.gameState.tabs[tabIndex];
+        
+        // Emit tab focus event for camera system
+        this.events.onTabFocus?.(tab.id);
         
         // Execute each effect for this tab
         for (const effectId of tab.effects) {

@@ -43,97 +43,72 @@ Mobile-responsive from day one - don't retrofit responsiveness
 Performance monitoring - watch for memory leaks in the game simulation
 State immutability - never mutate state directly, use proper React patterns
 
-Directory Structure
-tab-hoarder-simulator/
+Current Directory Structure
+tab-simulator/
 ├── public/
-│   ├── favicon.ico
-│   └── index.html
 ├── src/
 │   ├── components/
 │   │   ├── game/
-│   │   │   ├── TabBar.tsx
-│   │   │   ├── Tab.tsx
-│   │   │   ├── ResourceMeters.tsx
-│   │   │   ├── GameArea.tsx
-│   │   │   └── UpgradePanel.tsx
+│   │   │   ├── GameContainer.tsx (main game wrapper)
+│   │   │   ├── TabBrowser.tsx (tab management)
+│   │   │   ├── TabBar.tsx (tab headers)
+│   │   │   └── RunButton.tsx (run phase trigger)
+│   │   ├── tabs/
+│   │   │   ├── TabContent.tsx (tab details & links)
+│   │   │   └── LinkButton.tsx (discoverable links)
 │   │   ├── ui/
-│   │   │   ├── Button.tsx
-│   │   │   ├── ProgressBar.tsx
-│   │   │   ├── Modal.tsx
-│   │   │   └── Tooltip.tsx
-│   │   └── layout/
-│   │       ├── Header.tsx
-│   │       ├── Sidebar.tsx
-│   │       └── Footer.tsx
+│   │   │   ├── ResourcePanel.tsx (RAM display)
+│   │   │   ├── GoalPanel.tsx (objectives)
+│   │   │   └── ScoreDisplay.tsx (points & round)
+│   │   └── effects/
+│   │       └── SimpleCameraSystem.tsx (visual highlighting)
+│   ├── engine/
+│   │   └── GameLoop.ts (core game logic)
+│   ├── effects/
+│   │   ├── EffectRegistry.ts (effect management)
+│   │   ├── EmergentBehaviorDetector.ts (pattern detection)
+│   │   └── baseEffects.ts (core tab effects)
 │   ├── hooks/
-│   │   ├── useGameLoop.ts
-│   │   ├── useTabManager.ts
-│   │   ├── useResourceManager.ts
-│   │   └── useGameState.ts
+│   │   └── useGameEngine.ts (game state hook)
 │   ├── types/
-│   │   ├── game.ts
-│   │   ├── tabs.ts
-│   │   └── resources.ts
-│   ├── utils/
-│   │   ├── gameLogic.ts
-│   │   ├── tabBehaviors.ts
-│   │   ├── calculations.ts
-│   │   └── constants.ts
-│   ├── data/
-│   │   ├── tabTypes.ts
+│   │   ├── game.ts (core game types)
+│   │   ├── tabs.ts (tab & content types)
+│   │   ├── effects.ts (effect system types)
+│   │   ├── engine.ts
 │   │   ├── upgrades.ts
-│   │   └── achievements.ts
+│   │   └── index.ts
 │   ├── styles/
-│   │   └── globals.css
-│   ├── App.tsx
+│   │   └── index.css (Tailwind + Windows 95 theme)
 │   ├── main.tsx
-│   └── vite-env.d.ts
-├── tests/
-│   ├── components/
-│   ├── hooks/
-│   └── utils/
-├── docs/
-│   ├── GAME_DESIGN.md
-│   ├── API.md
-│   └── DEPLOYMENT.md
+│   └── App.tsx
+├── Claude.md (development guide)
 ├── package.json
 ├── tsconfig.json
 ├── tailwind.config.js
-├── vite.config.ts
-├── vitest.config.ts
-└── README.md
-Critical Implementation Guidelines
-Game Loop Architecture
-typescript// useGameLoop.ts should handle:
-- Automatic tab spawning (setInterval)
-- Resource depletion calculations
-- Tab behavior updates
-- Game state persistence
-- Performance optimization for long-running games
-Type Safety Requirements
-typescript// All game entities must be strictly typed
-interface Tab {
-  id: string;
-  type: TabType;
-  title: string;
-  url: string;
-  ramUsage: number;
-  spawnRate: number;
-  isActive: boolean;
-  createdAt: Date;
-  lastInteracted?: Date;
-}
+└── vite.config.ts
+Current Implementation Status
 
-// No optional properties without good reason
-// No union types with 'any'
-// Enums for discrete values
-Performance Considerations
+### Completed Core Systems
+- ✅ **GameLoop**: Deterministic effect execution with phase management
+- ✅ **Visual System**: SimpleCameraSystem for tab highlighting during run phase
+- ✅ **Tab Management**: Full tab lifecycle (open, close, switch, content)
+- ✅ **Effect System**: Registry-based effects with emergent behavior detection
+- ✅ **Windows 95 UI**: Complete retro theme with authentic styling
+- ✅ **Resource Management**: RAM-based gameplay with visual feedback
 
-Virtual scrolling for large tab lists (100+ tabs)
-Debounced state updates to prevent excessive re-renders
-Memoized calculations for expensive game logic
-Cleanup intervals on component unmount
-Local storage persistence for game state
+### Architecture Principles Applied
+- **Event-driven design**: GameLoop emits events, UI components listen
+- **Strict TypeScript**: All entities properly typed, no `any` usage
+- **Component composition**: Small, focused components with single responsibilities
+- **Immutable state**: React state updates follow immutability patterns
+- **Separation of concerns**: Game logic separate from UI components
+- **Deterministic game logic**: No timing-based game logic (timeouts/intervals) except for pure animations
+
+### Performance Optimizations
+- **Synchronous execution**: No race conditions or timing dependencies
+- **Minimal re-renders**: Strategic state updates and event handling
+- **Clean component hierarchy**: Efficient prop passing and state management
+- **No memory leaks**: Proper cleanup of timeouts and event listeners
 
 AI Assistant Interaction Guidelines
 When working with AI assistants on this project:
@@ -171,139 +146,106 @@ Iterate on core mechanics before adding polish
 
 Remember: This is a learning project. Prioritize clean architecture and TypeScript mastery over feature completeness. Better to have a small, well-built game than a large, messy one.
 
-## Game Design Vision: "Rapid Fire Tab Switching"
+## Current Game Implementation
 
-### Core Experience
-The game captures the visceral, manic experience of frantic tab-switching sessions where your brain tries to process everything simultaneously, creating chaotic but sometimes brilliant connections.
+### Core Gameplay Loop
+A Windows 95-themed tab management game with three phases:
+1. **Discovery Phase**: Click links to open new tabs (costs RAM)
+2. **Run Phase**: Execute all tab effects in deterministic order with visual feedback
+3. **Scoring Phase**: Calculate points from effects, synergies, and goals
 
-**Theme**: You're in a digital trance state where attention fragments across multiple tabs, creating visual storytelling through rapid camera movements and attention trails.
+### Architecture Overview
 
-### Visual Chain Reaction System
+#### Game Engine (`GameLoop.ts`)
+- **Deterministic execution**: Effects run in tab order, no randomness or race conditions
+- **Phase management**: Strict phase transitions (discovery → running → scoring)
+- **Effect system**: Each tab has effects that modify game state
+- **Event-driven**: Emits events for UI updates and visual feedback
 
-#### Tab Switching Animation Mechanics
+#### Visual System (`SimpleCameraSystem.tsx`)
+- **Tab highlighting**: Visual focus indicator during run phase
+- **Run phase overlay**: Shows "⚡ RUNNING EFFECTS" with progress
+- **Simple animations**: Yellow border + glow on currently processing tab
+- **Clean visual feedback**: No complex attention mechanics
+
+#### Core Types
 ```typescript
-interface TabSwitchChain {
-  sequence: Tab[];
-  switchSpeed: number; // milliseconds between switches
-  visualTrail: boolean; // leave visual breadcrumbs
-  momentum: number; // how fast the switching accelerates
-  attentionFragmentation: number; // split focus level
+interface Tab {
+  id: string;
+  type: TabType;
+  title: string;
+  content: TabContent;
+  ramUsage: number;
+  isActive: boolean;
+  effects: string[];
+  effectState: EffectState;
 }
 
-interface AttentionState {
-  focus: number; // 0-100, concentration level
-  fragmentation: number; // how split your attention is
-  switchSpeed: number; // milliseconds between jumps
-  overload: boolean; // switching too fast to process
+interface GameState {
+  tabs: Tab[];
+  resources: Resources;
+  phase: GamePhase; // 'discovery' | 'running' | 'scoring'
+  score: number;
+  round: number;
 }
 ```
 
-#### Run Phase Visual Experience
-1. **Camera rapidly jumps between tabs** (like cmd+tab on steroids)
-2. **Visual trails connect tabs** that trigger each other
-3. **Screen fragments** when multiple tabs activate simultaneously
-4. **Attention overlays** show divided focus with multiple cursors
-5. **Content bleeding** between tabs during rapid switching
+### Run Phase Experience
+1. **Visual Processing**: Camera highlights each tab as its effects execute
+2. **Order-based execution**: Tab effects run left-to-right, deterministically
+3. **Real-time feedback**: UI shows which tab is currently being processed
+4. **Effect visualization**: Tab glows yellow with border animation during processing
+5. **Emergent behaviors**: System detects patterns in effect combinations
 
-### Chain Reaction Examples
+### Key Components
+- **GameContainer**: Main game wrapper with SimpleCameraSystem
+- **TabBrowser**: Tab management and content display
+- **TabBar**: Interactive tab headers with close buttons and status indicators
+- **TabContent**: Shows tab details and discoverable links
+- **ResourcePanel**: Simplified to show only RAM (the core resource)
+- **RunButton**: Triggers the run phase
 
-#### "News Rabbit Hole" Chain
-Politics → Economic News → Stock Prices → Investment Advice → Retirement Planning → Health News → Medical Research → Conspiracy Theory
+### Implementation Notes
+- **No attention mechanics**: Removed complex attention state management
+- **Synchronous execution**: Effects execute immediately, visual timing is separate
+- **Event-driven UI**: GameLoop emits `onTabFocus` events for visual highlighting
+- **Windows 95 theme**: Consistent retro styling throughout
+- **Clean codebase**: All debug logs and unused code removed
 
-**Visual**: Camera pans rapidly, each tab "sparking" the next with animated connections, shared highlighted words flying between tabs.
+This simplified approach focuses on the core "Run Tabs" experience with clean visual feedback, making the effect processing visible and engaging without overwhelming complexity.
 
-#### "Shopping Spiral" Chain  
-Amazon Product → Reviews → Competitor Comparison → Price History → Coupon Sites → Cashback Apps → Credit Card Rewards → Personal Finance Blog
+### Critical Implementation Rule: No Timing-Based Game Logic
 
-**Visual**: Price numbers and product images "fly" between tabs, creating a paper trail of decision paralysis.
+**IMPORTANT**: Game state transitions and logic must NEVER depend on timeouts, intervals, or timing. The only exception is pure visual animations that don't affect game state.
 
-#### "Social Media Doom Scroll" Chain
-Twitter → Drama Thread → Wikipedia → Reddit → YouTube Video → Comments → More Drama → News → Back to Twitter
+**✅ Allowed:**
+- Visual animation timeouts (fade effects, highlighting, transitions)
+- UI feedback delays that don't change game state
+- CSS animations and transitions
 
-**Visual**: Notification bubbles cascade like a pinball machine, engagement metrics multiply across tabs.
+**❌ Forbidden:**
+- `setTimeout` or `setInterval` for game state changes
+- Timing-based phase transitions
+- Delayed effect execution
+- Time-dependent resource regeneration
+- Auto-save intervals that affect gameplay
 
-### Attention/Focus States
+**Why:** Timing-based logic creates race conditions, makes testing unreliable, introduces bugs, and makes the game feel unpredictable. All game logic must be deterministic and based on player actions or explicit state changes.
 
-#### "Flow State" (High Focus)
-- Single tab in sharp focus, others dimmed
-- Smooth, purposeful transitions
-- Clean, organized visual connections
-- Higher quality insights, fewer surprises
-
-#### "Scattered Brain" (Medium Focus)  
-- 2-3 tabs visible simultaneously
-- Moderate switching with visible trails
-- Balanced chaos - still readable
-- Sweet spot between control and serendipity
-
-#### "Attention Chaos" (Low Focus)
-- Rapid fire switching, barely registering content
-- Multiple overlapping visual trails
-- Screen fragments into multiple views
-- High chance of unexpected connections
-
-#### "Digital Vertigo" (Overload)
-- Tabs switching faster than eye can follow
-- Kaleidoscope of overlapping content
-- Visual static/glitch effects
-- Potential for breakthrough insights or complete crash
-
-### Chain Reaction Types
-
-#### Linear Chains
-Simple cause-and-effect: A→B→C
-**Visual**: Clean arrow trails
-**Example**: Recipe → Ingredient Store → Cooking Video → Kitchen Equipment
-
-#### Branching Chains  
-One tab triggers multiple others
-**Visual**: Tree-like branching with multiple trails
-**Example**: Breaking News → 5 opinion pieces + fact-checking + social reactions
-
-#### Feedback Loops
-Tabs reinforcing each other cyclically
-**Visual**: Circular trails, tabs pulsing in rhythm
-**Example**: Stock Price ↔ News ↔ Social Sentiment ↔ Stock Price
-
-#### Cascade Failures
-System overload domino effects
-**Visual**: Tabs "crashing" in sequence
-**Example**: Social media argument spreads across platforms
-
-#### Breakthrough Moments
-Rare emergent insights from chaos
-**Visual**: All tabs suddenly align, bright flash, moment of clarity
-**Example**: Random connection between cooking + chemistry + workout = life optimization insight
-
-### Implementation Strategy
-
-#### Camera System
+**Example Fix:**
 ```typescript
-interface CameraBehavior {
-  focusTab: (tabId: string, duration: number) => void;
-  rapidSwitch: (tabSequence: string[], speed: number) => void;
-  splitFocus: (tabIds: string[], layout: 'grid' | 'cascade' | 'chaos') => void;
-  overloadEffect: () => void; // visual chaos mode
+// ❌ Bad: Timing-based transition
+setTimeout(() => {
+  gameLoop.startDiscoveryPhase();
+}, 3000);
+
+// ✅ Good: Deterministic transition
+onRunComplete: (result) => {
+  // Update state immediately
+  setLastRunResult(result);
+  setIsAnimating(false);
+  
+  // Immediate deterministic transition
+  gameLoop.startDiscoveryPhase();
 }
 ```
-
-#### Visual Effects
-- **Attention Trails**: Mouse cursor duplicates showing divided attention
-- **Content Bleeding**: Text/images leak between tabs
-- **Color Temperature**: Cool = focused, hot = chaotic
-- **Screen Shake/Blur**: During rapid switching
-- **Tab Overlays**: Previews creating visual noise
-
-#### Sound Design
-- Tab switching sounds that accelerate and layer
-- Different audio per tab type (news = alerts, shopping = cash register)
-- Audio cacophony during overload states  
-- Moment of silence before breakthrough insights
-
-#### Strategic Gameplay
-- **Focus Management**: Do you control chain reactions or embrace chaos?
-- **Attention Resource**: Balance depth vs. breadth of processing
-- **Risk/Reward**: Chaos increases chance of breakthroughs but also crashes
-- **Emergent Discovery**: Unexpected connections create the most valuable insights
-
-This design makes the non-deterministic effects feel completely natural - because real tab-switching IS chaotic and unpredictable, but sometimes leads to genuine insights through unexpected connections. The manic, overwhelming-but-exciting feeling of browser chaos becomes the core gameplay mechanic.
